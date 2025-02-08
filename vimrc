@@ -48,8 +48,8 @@ Plug 'rhysd/git-messenger.vim'
 Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'chunkhang/vim-mbsync'
 Plug 'qxxxb/vim-searchhi'
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
+" Plug 'SirVer/ultisnips' python3 required
+" Plug 'honza/vim-snippets'
 Plug 'uiiaoo/java-syntax.vim'
 Plug 'yegappan/lsp'
 Plug 'mattn/emmet-vim'
@@ -579,9 +579,9 @@ let g:user_emmet_leader_key=',e'
 
 
 " Utilsnip {{{
-let g:UltiSnipsExpandTrigger           = '<tab>'
-let g:UltiSnipsJumpForwardTrigger      = '<tab>'
-let g:UltiSnipsJumpBackwardTrigger     = '<s-tab>'
+" let g:UltiSnipsExpandTrigger           = '<tab>'
+" let g:UltiSnipsJumpForwardTrigger      = '<tab>'
+" let g:UltiSnipsJumpBackwardTrigger     = '<s-tab>'
 "}}}
 
 " easymotion {{{
