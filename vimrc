@@ -42,11 +42,9 @@ Plug 'rhysd/git-messenger.vim'
 Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'chunkhang/vim-mbsync'
 Plug 'qxxxb/vim-searchhi'
-" Plug 'SirVer/ultisnips' python3 required
 Plug 'uiiaoo/java-syntax.vim'
 Plug 'yegappan/lsp'
 Plug 'mattn/emmet-vim'
-Plug 'w0rp/ale'
 
 call plug#end()
 filetype plugin indent on
@@ -544,35 +542,9 @@ el
 en
 " }}}
 
-" ALE {{{
-let g:ale_fixers = {
-\   'javascript': ['prettier', 'eslint'],
-\ }
-let g:ale_linters = {
-\   'javascript': ['eslint'],
-\}
-
-let g:ale_sign_error = '>>'
-let g:ale_sign_warning = '--'
-let g:ale_echo_msg_error_str = 'E'
-let g:ale_echo_msg_warning_str = 'W'
-let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
-let g:ale_python_flake8_options = '--max-line-length 88 --extend-ignore=E203'
-
-let g:ale_fix_on_save = 1
-" }}}
-
 " vim-emmet {{{
 let g:user_emmet_leader_key=',e'
 " }}}
-
-
-
-" Utilsnip {{{
-" let g:UltiSnipsExpandTrigger           = '<tab>'
-" let g:UltiSnipsJumpForwardTrigger      = '<tab>'
-" let g:UltiSnipsJumpBackwardTrigger     = '<s-tab>'
-"}}}
 
 " easymotion {{{
 map <Leader>s <Plug>(easymotion-bd-f)
