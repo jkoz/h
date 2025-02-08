@@ -28,7 +28,6 @@ Plug 'junegunn/vim-easy-align'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'easymotion/vim-easymotion'
 Plug 'simeji/winresizer'
-Plug 'liuchengxu/vim-which-key'
 Plug 'airblade/vim-rooter'
 Plug 'Yggdroot/indentLine'
 Plug 'reedes/vim-pencil'
@@ -50,11 +49,6 @@ call plug#end()
 filetype plugin indent on
 syntax on
 
-" }}}
-
-" vim-which-key {{{
-autocmd FileType which_key highlight WhichKeyFloating ctermbg=0 ctermfg=12
-nnoremap <silent> <leader> :WhichKey ','<CR>
 " }}}
 
 " LSP {{{
