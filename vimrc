@@ -33,7 +33,6 @@ Plug 'simeji/winresizer'
 Plug 'liuchengxu/vim-which-key'
 Plug 'airblade/vim-rooter'
 Plug 'liuchengxu/vista.vim'
-Plug 'puremourning/vimspector'
 " Plug 'airblade/vim-gitgutter'
 Plug 'Yggdroot/indentLine'
 Plug 'reedes/vim-pencil'
@@ -78,13 +77,13 @@ au User LspSetup call LspOptionsSet(lsp_opts)
 au User LspSetup call LspAddServer([#{
             \   name: 'typescriptlang',
             \   filetype: ['javascript', 'typescript', 'typescriptreact'],
-            \   path: '/usr/bin/typescript-language-server',
+            \   path: 'typescript-language-server',
             \   args: ['--stdio']
             \}])
 au User LspSetup call LspAddServer([#{
             \    name: 'ccls',
             \    filetype: ['c', 'cpp'],
-            \    path: '/usr/bin/ccls'
+            \    path: 'ccls'
             \  }])
 
 nn <silent> <leader>ld :LspGotoDefinition<cr>
@@ -577,51 +576,6 @@ let g:ale_fix_on_save = 1
 let g:user_emmet_leader_key=',e'
 " }}}
 
-" vimspector{{{
-let g:vimspector_enable_mappings = 'HUMAN'
-func! CustomiseUI()
-    " close all windows console windows
-    call win_gotoid( g:vimspector_session_windows.output ) | q
-    " dont use winbar
-    call win_gotoid( g:vimspector_session_windows.watches )
-    nunmenu WinBar
-    call win_gotoid( g:vimspector_session_windows.code )
-    nunmenu WinBar
-endfunction
-
-augroup MyVimspectorUICustomistaion
-    autocmd!
-    autocmd User VimspectorUICreated call CustomiseUI()
-augroup END
-
-" to see sign, uncomment below line
-se signcolumn=number
-
-nn <leader>vl :call vimspector#Launch()<cr>
-nn <leader>vk :call vimspector#Reset()<cr>
-nm <leader>vc   <Plug>VimspectorContinue
-nm <leader>vs   <Plug>VimspectorStop
-nm <leader>vr   <Plug>VimspectorRestart
-nm <leader>vp   <Plug>VimspectorPause
-nm <leader>vb   <Plug>VimspectorToggleBreakpoint
-nm <leader>vbc  <Plug>VimspectorToggleConditionalBreakpoint
-nm <leader>vbf  <Plug>VimspectorAddFunctionBreakpoint
-nm <leader>vbr  <Plug>VimspectorRunToCursor
-nm <leader>vn   <Plug>VimspectorStepOver
-nm <leader>vs   <Plug>VimspectorStepInto
-nm <leader>vo   <Plug>VimspectorStepOut
-
-
-" hi WarningMsg term=NONE cterm=NONE ctermfg=136 guifg=Red
-
-" Matching curly bracket highlight
-hi MatchParen term=NONE cterm=NONE ctermfg=136 ctermbg=NONE
-
-sign define vimspectorBP         text=o texthl=WarningMsg
-sign define vimspectorBPCond     text=o? texthl=WarningMsg
-sign define vimspectorBPDisabled text=o! texthl=LineNr
-sign define vimspectorPC         text=\ > texthl=MatchParen linehl=CursorLine
-sign define vimspectorPCBP       text=o>  texthl=MatchParen linehl=CursorLine
 
 
 " Utilsnip {{{
