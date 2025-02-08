@@ -361,10 +361,16 @@ aug end
 " }}}
 
 " FZF {{{
-" indicate how fzf buffer is opened
-" open in popup windows
-"let g:fzf_layout = { 'down': '20%' }
-" let g:fzf_layout = { 'window': { 'width': 1.0, 'height': 0.3, 'yoffset': 1.0, 'border': 'horizontal'} }
+" - down / up / left / right
+let g:fzf_layout = { 'down': '30%' }
+
+
+
+
+" - Window using a Vim command
+" let g:fzf_layout = { 'window': 'enew' }
+" let g:fzf_layout = { 'window': '-tabnew' }
+" let g:fzf_layout = { 'window': '10new' }
 
 " dont open fzf in some special buffer
 "au BufEnter * if bufname('#') =~ 'NERD_tree' && bufname('%') !~ 'NERD_tree' && winnr('$') > 1 | b# | exe "normal! \<c-w>\<c-w>" | :blast | endif
