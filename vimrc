@@ -22,8 +22,6 @@ Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-abolish'
 Plug 'tpope/vim-speeddating'
 Plug 'masukomi/vim-markdown-folding'
-" Plug 'gavinbeatty/dragvisuals.vim'
-" Plug 'junegunn/goyo.vim'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/vim-easy-align'
@@ -32,8 +30,6 @@ Plug 'easymotion/vim-easymotion'
 Plug 'simeji/winresizer'
 Plug 'liuchengxu/vim-which-key'
 Plug 'airblade/vim-rooter'
-Plug 'liuchengxu/vista.vim'
-" Plug 'airblade/vim-gitgutter'
 Plug 'Yggdroot/indentLine'
 Plug 'reedes/vim-pencil'
 Plug 'reedes/vim-litecorrect'
@@ -42,21 +38,15 @@ Plug 'lambdalisue/fern.vim'
 Plug 'lambdalisue/nerdfont.vim'
 Plug 'lambdalisue/fern-renderer-nerdfont.vim'
 Plug 'lambdalisue/glyph-palette.vim'
-" Plug 'lambdalisue/fern-git-status.vim'
-" Plug 'jceb/vim-orgmode'
 Plug 'rhysd/git-messenger.vim'
 Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'chunkhang/vim-mbsync'
 Plug 'qxxxb/vim-searchhi'
 " Plug 'SirVer/ultisnips' python3 required
-" Plug 'honza/vim-snippets'
 Plug 'uiiaoo/java-syntax.vim'
 Plug 'yegappan/lsp'
 Plug 'mattn/emmet-vim'
-" Plug 'pangloss/vim-javascript'
-" Plug 'mxw/vim-jsx'
 Plug 'w0rp/ale'
-" Plug 'sheerun/vim-polyglot'
 
 call plug#end()
 filetype plugin indent on
@@ -719,14 +709,6 @@ let g:goyo_width=100
 " Status line {{{
 se ls=2
 
-function! NearestMethodOrFunction() abort
-    let l:func = get(b:, 'vista_nearest_method_or_function', '')
-    if l:func != ''
-        return ' > ' . get(b:, 'vista_nearest_method_or_function', '') . ' '
-    endif
-    return ''
-endfunction
-
 " status line
 hi StatusLine ctermbg=0 cterm=none ctermfg=250
 hi StatusLineNC ctermbg=NONE cterm=underline term=NONE ctermfg=10
@@ -735,23 +717,4 @@ hi User2 ctermfg=250 ctermbg=8 cterm=underline
 
 " }}}
 
-" Vista {{{
-let g:vista_executive_for = {
-        \ 'cpp': 'vim_lsc',
-        \ 'c': 'vim_lsc',
-        \ 'python': 'vim_lsc',
-        \ 'java': 'vim_lsc',
-        \ 'vim': 'vim_lsc'
-        \ }
-let g:vista_ignore_kinds = ['Variable']
-
-aug vistahidecwd
-    autocmd!
-    autocmd bufenter * if winnr("$") == 1 && vista#sidebar#IsOpen() | q | endif
-aug end
-
-" nn <silent> <leader>l :Vista<cr>
-nn <silent> <leader>o :Vista finder<CR>
-
-" }}}
 
