@@ -11,6 +11,9 @@ export LC_CTYPE=en_US.UTF-8
 # set prompt to >
 export PS1="$ "
 
+# PATH
+export PATH=$HOME/bin:$PATH
+
 # use vi editing mode in shell
 set -o vi
 
@@ -31,3 +34,10 @@ export FZF_DEFAULT_OPTS="
     --bind '?:toggle-preview'
     --preview-window=:hidden
 "
+
+#  alias
+alias ll='ls -lah '
+alias l='ls -1pG'
+alias ls='ls -1pG'
+alias e='vim'
+alias t='tmux a'

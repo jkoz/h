@@ -22,12 +22,8 @@ Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-abolish'
 Plug 'tpope/vim-speeddating'
 Plug 'masukomi/vim-markdown-folding'
-Plug 'junegunn/fzf'
-Plug 'junegunn/fzf.vim'
-Plug 'junegunn/vim-easy-align'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'easymotion/vim-easymotion'
-Plug 'simeji/winresizer'
 Plug 'airblade/vim-rooter'
 Plug 'Yggdroot/indentLine'
 Plug 'reedes/vim-pencil'
@@ -37,38 +33,17 @@ Plug 'lambdalisue/fern.vim'
 Plug 'lambdalisue/nerdfont.vim'
 Plug 'lambdalisue/fern-renderer-nerdfont.vim'
 Plug 'lambdalisue/glyph-palette.vim'
-Plug 'rhysd/git-messenger.vim'
 Plug 'octol/vim-cpp-enhanced-highlight'
-Plug 'chunkhang/vim-mbsync'
-Plug 'qxxxb/vim-searchhi'
-Plug 'uiiaoo/java-syntax.vim'
-Plug 'yegappan/lsp'
+Plug 'rhysd/git-messenger.vim'
 Plug 'mattn/emmet-vim'
+Plug 'yegappan/lsp'
+Plug 'girishji/scope.vim'
+
 
 call plug#end()
 filetype plugin indent on
 syntax on
 
-" }}}
-
-" LSP {{{
-
-let lsp_opts = #{autoHighlightDiags: v:true}
-au User LspSetup call LspOptionsSet(lsp_opts)
-
-au User LspSetup call LspAddServer([#{
-            \   name: 'typescriptlang',
-            \   filetype: ['javascript', 'typescript', 'typescriptreact'],
-            \   path: 'typescript-language-server',
-            \   args: ['--stdio']
-            \}])
-au User LspSetup call LspAddServer([#{
-            \    name: 'ccls',
-            \    filetype: ['c', 'cpp'],
-            \    path: 'ccls'
-            \  }])
-
-nn <silent> <leader>ld :LspGotoDefinition<cr>
 " }}}
 
 " tabline {{{
@@ -109,7 +84,8 @@ nn <silent> ]G :tablast<CR>
 " }}}
 
 " Mappings {{{
-let mapleader = ","
+nn <space> <nop>
+let mapleader = " "
 
 " disable jk as escape because it cause slow down in virtual selection mode.
 ino <leader><leader> <esc>
@@ -130,7 +106,7 @@ vn / /\v
 " map <tab> %
 
 " clear search match
-nn <silent> <leader><space> :nohl<cr>
+nn <silent> <leader>c :nohl<cr>
 
 " Quick quit
 " nn <silent> q :q<cr>
@@ -272,7 +248,7 @@ se makeprg=make
 se foldenable
 se foldmethod=manual
 se foldlevelstart=0   " close all fold by default
-nnoremap <space> za  " space open/closes folds
+" nnoremap <space> za  " space open/closes folds
 
 se sidescroll=1
 se sidescrolloff=10
@@ -318,37 +294,9 @@ aug configgroup
 aug END
 "}}}
 
-" Tag bar {{{
-"let g:tagbar_autofocus = 1
-"nn <silent> <leader>t :TagbarToggle<cr>
-
-"let g:tagbar_type_markdown = {
-    "\ 'ctagstype' : 'markdown',
-    "\ 'kinds' : [
-        "\ 'h:Heading_L1',
-        "\ 'i:Heading_L2',
-        "\ 'k:Heading_L3'
-    "\ ]
-"\ }
-
-"let g:tagbar_type_tex = {
-    "\ 'ctagstype' : 'latex',
-    "\ 'kinds'     : [
-        "\ 's:sections',
-        "\ 'g:graphics:0:0',
-        "\ 'l:labels',
-        "\ 'r:refs:1:0',
-        "\ 'p:pagerefs:1:0'
-    "\ ]
-"\ }
-
-" }}}
-
 " Fern {{{
 
-" use netrw
-nn <Leader>nf :let @/=expand("%:t") <Bar> execute 'Ex' expand("%:h") <Bar> normal n<CR>
-nn <Leader>' :Fern . -reveal=% -drawer -toggle<CR>
+nn <Leader>n :Fern . -reveal=% -drawer -toggle<CR>
 
 " fern
 " search for current file in directory: :Fern . -reveal=% -drawer
@@ -360,113 +308,13 @@ aug fernaug
 aug end
 " }}}
 
-" FZF {{{
-" - down / up / left / right
-let g:fzf_layout = { 'down': '30%' }
-
-
-
-
-" - Window using a Vim command
-" let g:fzf_layout = { 'window': 'enew' }
-" let g:fzf_layout = { 'window': '-tabnew' }
-" let g:fzf_layout = { 'window': '10new' }
-
-" dont open fzf in some special buffer
-"au BufEnter * if bufname('#') =~ 'NERD_tree' && bufname('%') !~ 'NERD_tree' && winnr('$') > 1 | b# | exe "normal! \<c-w>\<c-w>" | :blast | endif
-
-function! s:build_quickfix_list(lines)
-    call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
-    copen
-    cc
-endfunction
-
-let g:fzf_action = {
-            \ 'ctrl-q': function('s:build_quickfix_list'),
-            \ 'ctrl-t': 'tab split',
-            \ 'ctrl-x': 'split',
-            \ 'ctrl-v': 'vsplit' }
-
-" On FZF popup
-" - C-t to open file in a new tab
-" - C-x to split
-" - C-v to v split
-
-" FZF go up directory upon doing :Files
-fu! FzfExplore(...)
-    let inpath = substitute(a:1, "'", '', 'g')
-    if inpath == "" || matchend(inpath, '/') == strlen(inpath)
-        execute "cd" getcwd() . '/' . inpath
-        let cwpath = getcwd() . '/'
-        call fzf#run(fzf#wrap(fzf#vim#with_preview({'source': 'ls -1ap', 'dir': cwpath, 'sink': 'FZFExplore', 'options': ['--prompt', cwpath]})))
-    else
-        let file = getcwd() . '/' . inpath
-        execute "e" file
-    endif
-endfunction
-command! -nargs=* FZFExplore call FzfExplore(shellescape(<q-args>))
-
-function! s:format_qf_line(line)
-  let parts = split(a:line, ':')
-  return { 'filename': parts[0]
-         \,'lnum': parts[1]
-         \,'col': parts[2]
-         \,'text': join(parts[3:], ':')
-         \ }
-endfunction
-
-function! s:qf_to_fzf(key, line) abort
-  let l:filepath = expand('#' . a:line.bufnr . ':p')
-  return l:filepath . ':' . a:line.lnum . ':' . a:line.col . ':' . a:line.text
-endfunction
-
-function! s:fzf_to_qf(filtered_list) abort
-  let list = map(a:filtered_list, 's:format_qf_line(v:val)')
-  if len(list) > 0
-    call setqflist(list)
-    copen
-  endif
-endfunction
-
-command! FzfQF call fzf#run(fzf#wrap({
-      \ 'source': map(getqflist(), function('<sid>qf_to_fzf')),
-      \ 'sink*':   function('<sid>fzf_to_qf'),
-      \ 'options': '--reverse --multi --bind=ctrl-a:select-all,ctrl-d:deselect-all --prompt "quickfix> "',
-      \ }))
-
-" search for core vim script: :FZF /usr/local/Cellar/vim
-"
-
-nn <silent> <leader>p :FZFExplore<CR>
-nn <silent> <leader>z :Buffers<CR>
-nn <silent> <leader>m :History<CR>
-nn <silent> <leader>x :History:<CR>
-nn <silent> <leader>fx :Command<CR>
-nn <silent> <leader>fo :BTags<CR>
-nn <silent> <leader>ff :FZF<CR>
-nn <silent> <leader>f/ :History/<cr>
-nn <silent> <leader>fw :Windows<CR>
-nn <silent> <leader>fc :Commits<CR>
-nn <silent> <leader>ft :Helptags<CR>
-nn <silent> <leader>fa :Ag<CR>
-nn <silent> <leader>fg :Rg<CR>
-nn <silent> <leader>fq :FzfQF<cr>
-nn <silent> <leader>fl :BLines<CR>
-" }}}
-
-" Drag visuals {{{
-
-vm <expr> <c-h> DVB_Drag('left')
-vm <expr> <c-l> DVB_Drag('right')
-vm <expr> <c-j>  DVB_Drag('down')
-vm <expr> <c-k>  DVB_Drag('up')
-vm <expr> D DVB_Duplicate()
-hi Visual cterm=NONE ctermbg=0 ctermfg=NONE term=NONE
-" }}}
-
-" Syntastic {{{
-let g:syntastic_error_symbol = '✗'
-let g:syntastic_warning_symbol = '⚠'
+" scope {{{
+nn <silent> <leader>m :Scope MRU<CR>
+nn <silent> <leader>o :Scope LspDocumentSymbol<cr>
+nn <silent> <leader>z :Scope Buffer<CR>
+nn <silent> <leader>x :Scope Command<CR>
+nn <silent> <leader>gg :Scope GitFile<CR>
+nn <silent> <leader>f :Scope File<CR>
 " }}}
 
 " Pencil {{{
@@ -513,11 +361,11 @@ nnoremap <leader>ge :Gedit<CR>
 nnoremap <leader>gr :Gread<CR>
 nnoremap <leader>gw :Gwrite<CR><CR>
 nnoremap <leader>gl :silent! Glog<CR>:bot copen<CR>
-nnoremap <leader>gp :Ggrep<Space>
-nnoremap <leader>gmv :Gmove<Space>
-nnoremap <leader>gbb :Git branch<Space>
+" nnoremap <leader>gp :Ggrep<Space>
+" nnoremap <leader>gmv :Gmove<Space>
+" nnoremap <leader>gbb :Git branch<Space>
 nnoremap <leader>gbl :Git blame<cr>
-nnoremap <leader>go :Git checkout<Space>
+" nnoremap <leader>go :Git checkout<Space>
 nnoremap <leader>gps :Git push<CR>
 nnoremap <leader>gpl :Git pull<CR>
 " }}}
@@ -549,12 +397,6 @@ let g:user_emmet_leader_key=',e'
 " easymotion {{{
 map <Leader>s <Plug>(easymotion-bd-f)
 map <leader>e <Plug>(easymotion-prefix)
-" }}}
-
-" vim-easy-align {{{
-" https://hackernoon.com/how-easily-align-your-code-in-vim-s16p3ysp
-xmap <leader>d <Plug>(EasyAlign)
-nmap <leader>d <Plug>(EasyAlign)
 " }}}
 
 " {{{ teaks split window border
@@ -595,30 +437,11 @@ nn <C-w>" <C-w>s
 se equalalways
 "se eadirection
 
-" windows moving
-"nn <C-J> <C-W><C-J>
-"nn <C-K> <C-W><C-K>
-"nn <C-L> <C-W><C-L>
-"nn <C-H> <C-W><C-H>
-nn <C-H> 2zh
-nn <C-L> 2zl
-nn <C-J> <C-E>
-nn <C-K> <C-Y>
+nn H 2zh
+nn L 2zl
+nn J <C-E>
+nn K <C-Y>
 
-nn <leader><leader>h <C-W>h
-nn <leader><leader>j <C-W>j
-nn <leader><leader>k <C-W>k
-nn <leader><leader>l <C-W>l
-
-" window resize
-"C-w _ : Max out the height of the current split
-"C-w | : Max out the width of the current split
-"C-w =  Normalize all split sizes, which is very handy when resizing terminal
-"C-w - : reduce horizontal size
-"C-w + : increase horizontal size
-"C-w > : increate vertical size
-"C-w < : increate vertical size
-let g:winresizer_start_key='<C-w>e'
 " }}}
 
 " Use man page inside vim {{{
@@ -660,22 +483,11 @@ hi Identifier ctermfg=14
 hi Function ctermfg=251
 " }}}
 
-" quick fix buffer {{{ use vim-unimpaired now
-" nn <leader>] :cnext<cr>
-" nn <leader>[ :cprev<cr>
-" nn <leader>j] :lnext<cr>
-" nn <leader>j[ :lprevious<cr>
-" }}}
-
 " vim-markdown {{{
 " disable of conceal regardless of conceallevel
 "let g:vim_markdown_conceal = 0
 let g:markdown_folding = 1
 let g:markdown_enable_folding = 1
-" }}}
-
-" Goyo {{{
-let g:goyo_width=100
 " }}}
 
 " Status line {{{
@@ -689,4 +501,24 @@ hi User2 ctermfg=250 ctermbg=8 cterm=underline
 
 " }}}
 
+" LSP {{{
+
+let lsp_opts = #{autoHighlightDiags: v:true}
+au User LspSetup call LspOptionsSet(lsp_opts)
+
+au User LspSetup call LspAddServer([#{
+            \   name: 'typescriptlang',
+            \   filetype: ['javascript', 'typescript', 'typescriptreact'],
+            \   path: 'typescript-language-server',
+            \   args: ['--stdio']
+            \}])
+au User LspSetup call LspAddServer([#{
+            \    name: 'ccls',
+            \    filetype: ['c', 'cpp'],
+            \    path: 'ccls'
+            \  }])
+
+nn <silent> <leader>d :LspGotoDefinition<cr>
+nn <silent> <leader>h :LspHover<cr>
+" }}}
 
