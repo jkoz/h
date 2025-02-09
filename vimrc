@@ -38,6 +38,7 @@ Plug 'rhysd/git-messenger.vim'
 Plug 'mattn/emmet-vim'
 Plug 'yegappan/lsp'
 Plug 'girishji/scope.vim'
+Plug 'girishji/vimsuggest'
 
 
 call plug#end()
@@ -173,21 +174,8 @@ se shm+=I "dont show version welcome page please
 
 se ttyscroll=3
 se ttyfast
-if !has('nvim')
-    set completepopup=height:10,width:60,highlight:Pmenu,border:on
-
-    " remove preview, as i don't want see my windows move because of scratch
-    " use popup to show preview info
-    se completeopt=menuone,menu,longest,noselect,popup
-
-    " sameple popup menu
-    "     let s:popup_id = popup_atcursor(a:lines, {
-    "           \ 'padding': [0, 0, 0, 0],
-    "           \ 'border': [1, 1, 1, 1],
-    "           \ 'moved': 'any',
-    "           \ 'borderchars': ['─', '│', '─ ', '│', '╭', '╮', '╯', '╰'],
-    "           \ })
-en
+se completepopup=height:10,width:80,highlight:Pmenu,border:on
+se completeopt=menuone,menu,longest,noselect,popup,preview,fuzzy
 se lazyredraw
 se synmaxcol=174
 
@@ -311,7 +299,7 @@ aug end
 " scope {{{
 nn <silent> <leader>m :Scope MRU<CR>
 nn <silent> <leader>o :Scope LspDocumentSymbol<cr>
-nn <silent> <leader>z :Scope Buffer<CR>
+nn <silent> <leader>c :Scope Buffer<CR>
 nn <silent> <leader>x :Scope Command<CR>
 nn <silent> <leader>gg :Scope GitFile<CR>
 nn <silent> <leader>f :Scope File<CR>
@@ -462,7 +450,7 @@ hi TabLineSel ctermfg=64 term=underline,reverse cterm=underline,reverse ctermbg=
 
 " CursorColumn, CursorLine, and CursorLineNr
 hi CursorLineNr cterm=bold,italic ctermbg=NONE ctermfg=64
-hi CursorLine  cterm=none ctermbg=8
+hi CursorLine  cterm=none ctermbg=0
 hi CursorColumn ctermbg=NONE
 hi LineNr ctermbg=NONE
 
@@ -472,7 +460,6 @@ hi htmlH1 cterm=NONE cterm=NONE ctermfg=33
 hi htmlH2 cterm=NONE cterm=NONE ctermfg=2
 hi htmlH3 cterm=NONE cterm=NONE ctermfg=136
 
-
 " spell error, warning, etc
 hi Error cterm=italic ctermfg=166 ctermbg=0
 hi SpellBad cterm=italic term=NONE
@@ -481,6 +468,11 @@ hi SpellCap cterm=none ctermfg=64
 " function, identifier
 hi Identifier ctermfg=14
 hi Function ctermfg=251
+
+" popup menu
+hi Pmenu ctermfg=12 term=bold cterm=bold ctermbg=0
+hi PmenuSel term=reverse cterm=reverse ctermfg=64 ctermbg=0
+hi PmenuSbar ctermfg=12 term=bold cterm=bold ctermbg=0
 " }}}
 
 " vim-markdown {{{
@@ -502,7 +494,6 @@ hi User2 ctermfg=250 ctermbg=8 cterm=underline
 " }}}
 
 " LSP {{{
-
 let lsp_opts = #{autoHighlightDiags: v:true}
 au User LspSetup call LspOptionsSet(lsp_opts)
 
@@ -516,6 +507,12 @@ au User LspSetup call LspAddServer([#{
             \    name: 'ccls',
             \    filetype: ['c', 'cpp'],
             \    path: 'ccls'
+            \  }])
+au User LspSetup call LspAddServer([#{
+            \    name: 'vim-language-server',
+            \    filetype: ['vim'],
+            \    path: '/usr/local/bin/vim-language-server',
+            \   args: ['--stdio']
             \  }])
 
 nn <silent> <leader>d :LspGotoDefinition<cr>
