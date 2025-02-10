@@ -107,7 +107,7 @@ vn / /\v
 " map <tab> %
 
 " clear search match
-nn <silent> <leader>c :nohl<cr>
+nn <silent> <leader>v :nohl<cr>
 
 " Quick quit
 nn <silent> q :q<cr>
@@ -247,7 +247,7 @@ se wildignore+=*_build/*,*/coverage/*,*/target/*,*/tmp/*,*/lib/*,*/.settings/*,*
 " completion
 se dict=/usr/share/dict/cracklib-small
 se cpt=.,b,u,] " this specifies how key word complete works when using <c-p><c-n>
-se wildmode=longest,list:longest
+se wildmode=longest:full,full
 
 " color
 se background=dark
@@ -256,6 +256,8 @@ colo solarized
 " changing cursor in insert mode and normal mode
 let &t_SI = "\e[6 q"
 let &t_EI = "\e[4 q"
+
+se wildoptions=fuzzy,pum
 
 "}}}
 
@@ -301,8 +303,9 @@ nn <silent> <leader>m :Scope MRU<CR>
 nn <silent> <leader>o :Scope LspDocumentSymbol<cr>
 nn <silent> <leader>c :Scope Buffer<CR>
 nn <silent> <leader>x :Scope Command<CR>
-nn <silent> <leader>gg :Scope GitFile<CR>
 nn <silent> <leader>f :Scope File<CR>
+nn <silent> <leader>l :Scope BufSearch<CR>
+nn <silent> <leader>gg :Scope GitFile<CR>
 " }}}
 
 " Pencil {{{
