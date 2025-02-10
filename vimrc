@@ -110,7 +110,7 @@ vn / /\v
 nn <silent> <leader>c :nohl<cr>
 
 " Quick quit
-" nn <silent> q :q<cr>
+nn <silent> q :q<cr>
 nn <silent> - :bp\|bd #<cr>
 
 "com! BW :bp|:bd#
@@ -511,7 +511,7 @@ au User LspSetup call LspAddServer([#{
 au User LspSetup call LspAddServer([#{
             \    name: 'vim-language-server',
             \    filetype: ['vim'],
-            \    path: '/usr/local/bin/vim-language-server',
+            \    path: 'vim-language-server',
             \   args: ['--stdio']
             \  }])
 
