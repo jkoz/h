@@ -18,8 +18,6 @@ Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-rsi'
-Plug 'tpope/vim-endwise'
-Plug 'tpope/vim-abolish'
 Plug 'tpope/vim-speeddating'
 Plug 'masukomi/vim-markdown-folding'
 Plug 'dhruvasagar/vim-table-mode'
@@ -339,7 +337,7 @@ aug END
 " }}}
 
 " Dispatch {{{
-nn <leader>r :silent Dispatch!<CR>
+nn <leader>r :Dispatch<CR>
 " }}}
 
 " {{{ fugitive
