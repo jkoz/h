@@ -299,8 +299,9 @@ aug end
 " scope {{{
 nn <silent> <leader>m :Scope MRU<CR>
 nn <silent> <leader>o :Scope LspDocumentSymbol<cr>
-nn <silent> <leader>c :Scope Buffer<CR>
+nn <silent> <leader>b :Scope Buffer<CR>
 nn <silent> <leader>x :Scope Command<CR>
+nn <silent> <leader>p :Scope CmdHistory<CR>
 nn <silent> <leader>f :Scope File<CR>
 nn <silent> <leader>l :Scope BufSearch<CR>
 nn <silent> <leader>gg :Scope GitFile<CR>
@@ -505,9 +506,10 @@ au User LspSetup call LspAddServer([#{
             \   args: ['--stdio']
             \}])
 au User LspSetup call LspAddServer([#{
-            \    name: 'ccls',
+            \    name: 'clangd',
             \    filetype: ['c', 'cpp'],
-            \    path: 'ccls'
+            \    path: 'clangd',
+            \    args: ['--background-index']
             \  }])
 au User LspSetup call LspAddServer([#{
             \    name: 'vim-language-server',
