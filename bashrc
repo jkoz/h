@@ -17,6 +17,13 @@ export PATH=$HOME/bin:$PATH
 # use vi editing mode in shell
 set -o vi
 
+# bindkey
+# % bind -l for a list of bindkey
+# % bind -p for a list of current bind keys
+bind '"\C-p": history-search-backward'
+bind '"\C-n": history-search-forward'
+
+
 # Use 256 color, this will make vim work right inside tmux
 export TERM=xterm-256color
 export COLORTERM=truecolor
