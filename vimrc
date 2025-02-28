@@ -9,8 +9,7 @@ endif
  call plug#begin('~/.vim/plugged')
 
 Plug 'altercation/vim-colors-solarized'
-" Plug 'tpope/vim-commentary'
-Plug 'tomtom/tcomment_vim'
+Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-vinegar'
@@ -19,24 +18,21 @@ Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-rsi'
 Plug 'tpope/vim-speeddating'
-Plug 'masukomi/vim-markdown-folding'
-Plug 'dhruvasagar/vim-table-mode'
-Plug 'easymotion/vim-easymotion'
-Plug 'airblade/vim-rooter'
-Plug 'Yggdroot/indentLine'
-Plug 'reedes/vim-pencil'
-Plug 'reedes/vim-litecorrect'
-Plug 'reedes/vim-lexical'
-Plug 'lambdalisue/fern.vim'
-Plug 'lambdalisue/nerdfont.vim'
-Plug 'lambdalisue/fern-renderer-nerdfont.vim'
-Plug 'lambdalisue/glyph-palette.vim'
-Plug 'octol/vim-cpp-enhanced-highlight'
-Plug 'rhysd/git-messenger.vim'
+
 Plug 'mattn/emmet-vim'
-Plug 'yegappan/lsp'
-Plug 'girishji/scope.vim'
-Plug 'girishji/vimsuggest'
+Plug 'jkoz/vim-fuzzy'
+Plug 'natebosch/vim-lsc'
+
+" Plug 'airblade/vim-rooter'
+" Plug 'Yggdroot/indentLine'
+" Plug 'yegappan/lsp'
+" Plug 'girishji/scope.vim'
+" Plug 'girishji/vimsuggest'
+" Plug 'masukomi/vim-markdown-folding'
+" Plug 'rhysd/git-messenger.vim'
+" Plug 'octol/vim-cpp-enhanced-highlight'
+" Plug 'easymotion/vim-easymotion'
+" Plug 'dhruvasagar/vim-table-mode'
 
 
 call plug#end()
@@ -45,7 +41,7 @@ syntax on
 
 " }}}
 
-" tabline {{{
+" Tabline {{{
 function! MyTabLine()
   let s = ''
   for i in range(tabpagenr('$'))
@@ -74,7 +70,7 @@ set tabline=%!MyTabLine()
 set showtabline=1 " 2. always show tabline, 1 show when having more than 1 tab
 " }}}
 
-" tabs {{{
+" Tabs {{{
 nn <silent> tt :tabedit %<CR>
 nn <silent> [g :tabprevious<CR>
 nn <silent> ]g :tabnext<CR>
@@ -135,6 +131,19 @@ nn <leader>y :%s/\s\+$//<cr>
 
 " insert date, press dd<tab> insert mode to generate current date
 iab <expr> dd strftime("%c")
+
+" windows
+nn <C-w>\| <C-w>v
+nn <C-w>" <C-w>s
+
+" windows stuffs
+se equalalways
+"se eadirection
+
+nn H 2zh
+nn L 2zl
+nn J <C-E>
+nn K <C-Y>
 
 " }}}
 
@@ -251,6 +260,11 @@ se wildmode=longest:full,full
 se background=dark
 colo solarized
 
+" transparent v-split windows
+hi VertSplit ctermfg=10 ctermbg=NONE guibg=NONE
+hi ErrorMsg term=NONE cterm=NONE  ctermbg=NONE ctermfg=9
+hi Comment cterm=italic
+
 " changing cursor in insert mode and normal mode
 let &t_SI = "\e[6 q"
 let &t_EI = "\e[4 q"
@@ -281,61 +295,6 @@ aug configgroup
     au BufRead,BufNewFile *.conf setl tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab foldmethod=marker foldlevel=0
 aug END
 "}}}
-
-" Fern {{{
-
-nn <Leader>n :Fern . -reveal=% -drawer -toggle<CR>
-
-" fern
-" search for current file in directory: :Fern . -reveal=% -drawer
-" let g:fern#renderer = "default"
-let g:fern#renderer = "nerdfont"
-aug fernaug
-    au!
-    au FileType fern setl nonumber norelativenumber
-aug end
-" }}}
-
-" scope {{{
-nn <silent> <leader>m :Scope MRU<CR>
-nn <silent> <leader>o :Scope LspDocumentSymbol<cr>
-nn <silent> <leader>b :Scope Buffer<CR>
-nn <silent> <leader>x :Scope Command<CR>
-nn <silent> <leader>p :Scope CmdHistory<CR>
-nn <silent> <leader>f :Scope File<CR>
-nn <silent> <leader>l :Scope BufSearch<CR>
-nn <silent> <leader>gg :Scope GitFile<CR>
-" }}}
-
-" Pencil {{{
-" soft mode use 1 line even if it is long line
-let g:pencil#mode_indicators = {'hard': 'PH', 'soft': 'PS', 'off': ''}
-
-aug pencil
-    autocmd!
-    autocmd FileType tex,latex
-                \ setl spell spl=en_us fdo+=search nocursorcolumn
-                \ |  cal pencil#init({'wrap': 'soft', 'textwidth': 80, 'conceallevel': 2})
-                \ | cal litecorrect#init() | cal lexical#init()
-    autocmd FileType markdown,mkd,md
-                \ setl nowrap spell spl=en_us foldexpr=NestedMarkdownFolds() foldtext=_foldtext() fdo+=search
-                \ | cal pencil#init({'wrap': 'soft', 'textwidth': 200, 'conceallevel': 2})
-                \ | cal litecorrect#init() | cal lexical#init()
-    autocmd Filetype git,gitsendemail,*commit*,*COMMIT*
-                \ setl spell spl=en_us et sw=2 ts=2 noai
-                \ | cal pencil#init({'wrap': 'soft', 'textwidth': 72})
-                \ | cal litecorrect#init() | cal lexical#init()
-    autocmd Filetype mail
-                \ setl fdm=manual spell spl=en_us spf=~/.vim/spellfile.add et sw=2 ts=2 noai nonu nornu
-                \ | cal pencil#init({'wrap': 'soft', 'textwidth': 60})
-                \ | cal litecorrect#init() | cal lexical#init()
-                \ | 1,/^$/-1fold
-    autocmd Filetype org
-                \ setl spell spl=en_us spf=~/.vim/spellfile.add et sw=2 ts=2 noai nonu nornu
-                \ |  cal pencil#init({'wrap': 'soft', 'textwidth': 60})
-                \ | cal litecorrect#init() | cal lexical#init()
-aug END
-" }}}
 
 " Dispatch {{{
 nn <leader>r :Dispatch<CR>
@@ -384,19 +343,6 @@ en
 let g:user_emmet_leader_key=',e'
 " }}}
 
-" easymotion {{{
-map <Leader>s <Plug>(easymotion-bd-f)
-map <leader>e <Plug>(easymotion-prefix)
-" }}}
-
-" {{{ teaks split window border
-hi VertSplit ctermfg=10 ctermbg=NONE guibg=NONE
-hi ErrorMsg term=NONE cterm=NONE  ctermbg=NONE ctermfg=9
-hi Comment cterm=italic
-
-"se foldcolumn=1
-" }}}
-
 " {{{ foldtext
 fu! _foldtext()
     " clean up first line
@@ -418,20 +364,6 @@ endf
 hi Folded cterm=italic ctermbg=NONE ctermfg=12
 hi FoldColumn ctermbg=NONE
 set foldtext=_foldtext()
-" }}}
-
-" windows {{{
-nn <C-w>\| <C-w>v
-nn <C-w>" <C-w>s
-" windows stuffs
-se equalalways
-"se eadirection
-
-nn H 2zh
-nn L 2zl
-nn J <C-E>
-nn K <C-Y>
-
 " }}}
 
 " Use man page inside vim {{{
@@ -492,33 +424,8 @@ hi StatusLine ctermbg=0 cterm=none ctermfg=250
 hi StatusLineNC ctermbg=NONE cterm=underline term=NONE ctermfg=10
 hi User1 ctermbg=8 ctermfg=2 cterm=bold,underline
 hi User2 ctermfg=250 ctermbg=8 cterm=underline
-
 " }}}
 
 " LSP {{{
-let lsp_opts = #{autoHighlightDiags: v:true}
-au User LspSetup call LspOptionsSet(lsp_opts)
-
-au User LspSetup call LspAddServer([#{
-            \   name: 'typescriptlang',
-            \   filetype: ['javascript', 'typescript', 'typescriptreact'],
-            \   path: 'typescript-language-server',
-            \   args: ['--stdio']
-            \}])
-au User LspSetup call LspAddServer([#{
-            \    name: 'clangd',
-            \    filetype: ['c', 'cpp'],
-            \    path: 'clangd',
-            \    args: ['--background-index']
-            \  }])
-au User LspSetup call LspAddServer([#{
-            \    name: 'vim-language-server',
-            \    filetype: ['vim'],
-            \    path: 'vim-language-server',
-            \   args: ['--stdio']
-            \  }])
-
-nn <silent> <leader>d :LspGotoDefinition<cr>
-nn <silent> <leader>h :LspHover<cr>
 " }}}
 

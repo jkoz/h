@@ -12,7 +12,7 @@ export LC_CTYPE=en_US.UTF-8
 export PS1="$ "
 
 # PATH
-export PATH=$HOME/bin:$PATH
+export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # use vi editing mode in shell
 set -o vi
