@@ -404,7 +404,7 @@ hi Identifier ctermfg=14
 hi Function ctermfg=251
 
 " popup menu
-hi Pmenu ctermfg=12 term=bold cterm=bold ctermbg=0
+hi Pmenu ctermfg=12 term=bold cterm=bold ctermbg=8
 hi PmenuSel term=reverse cterm=reverse ctermfg=64 ctermbg=0
 hi PmenuSbar ctermfg=12 term=bold cterm=bold ctermbg=0
 " }}}
