@@ -140,10 +140,10 @@ nn <C-w>" <C-w>s
 se equalalways
 "se eadirection
 
-nn H 2zh
-nn L 2zl
-nn J <C-E>
-nn K <C-Y>
+nn <C-h> 2zh
+nn <C-l> 2zl
+nn <C-j> <C-E>
+nn <C-k> <C-Y>
 
 " }}}
 
