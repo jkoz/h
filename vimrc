@@ -265,6 +265,12 @@ hi VertSplit ctermfg=10 ctermbg=NONE guibg=NONE
 hi ErrorMsg term=NONE cterm=NONE  ctermbg=NONE ctermfg=9
 hi Comment cterm=italic
 
+" transparent horizontal split
+se ls=0
+hi StatusLine term=NONE cterm=NONE ctermfg=136 ctermbg=8 
+let &statusline = '%#StatusLine#'
+
+
 " changing cursor in insert mode and normal mode
 let &t_SI = "\e[6 q"
 let &t_EI = "\e[4 q"
@@ -279,8 +285,8 @@ se wildoptions=fuzzy,pum
 se fcs=vert:│
 se fcs+=fold:·
 se fcs+=diff:\ "the leading space is used
-"se fcs+=stl:┈
-"se fcs+=stlnc:┈
+se fcs+=stl:─
+se fcs+=stlnc:─
 " }}}
 
 " Auto Groups {{{
@@ -416,16 +422,4 @@ let g:markdown_folding = 1
 let g:markdown_enable_folding = 1
 " }}}
 
-" Status line {{{
-se ls=2
-
-" status line
-hi StatusLine ctermbg=0 cterm=none ctermfg=250
-hi StatusLineNC ctermbg=NONE cterm=underline term=NONE ctermfg=10
-hi User1 ctermbg=8 ctermfg=2 cterm=bold,underline
-hi User2 ctermfg=250 ctermbg=8 cterm=underline
-" }}}
-
-" LSP {{{
-" }}}
 
