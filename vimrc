@@ -78,6 +78,11 @@ nn <silent> [G :tabrewind<CR>
 nn <silent> ]G :tablast<CR>
 " }}}
 
+" rsi {{{
+"c-a is for tmux , c-q is visual block
+cno <C-q> <home>
+" }}}
+
 " Mappings {{{
 nn <space> <nop>
 let mapleader = " "
