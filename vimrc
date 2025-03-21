@@ -18,21 +18,9 @@ Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-rsi'
 Plug 'tpope/vim-speeddating'
-
 Plug 'mattn/emmet-vim'
 Plug 'jkoz/vim-fuzzy'
 Plug 'natebosch/vim-lsc'
-
-" Plug 'airblade/vim-rooter'
-" Plug 'Yggdroot/indentLine'
-" Plug 'yegappan/lsp'
-" Plug 'girishji/scope.vim'
-" Plug 'girishji/vimsuggest'
-" Plug 'masukomi/vim-markdown-folding'
-" Plug 'rhysd/git-messenger.vim'
-" Plug 'octol/vim-cpp-enhanced-highlight'
-" Plug 'easymotion/vim-easymotion'
-" Plug 'dhruvasagar/vim-table-mode'
 
 
 call plug#end()
@@ -351,7 +339,7 @@ en
 " }}}
 
 " vim-emmet {{{
-let g:user_emmet_leader_key=',e'
+let g:user_emmet_leader_key=',;'
 " }}}
 
 " {{{ foldtext
@@ -427,4 +415,7 @@ let g:markdown_folding = 1
 let g:markdown_enable_folding = 1
 " }}}
 
-
+" Jump to git root or current file dir {{{ 
+nn <silent> <space>kj :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') .. ' rev-parse  --show-toplevel')}")<CR>
+nn <silent> <space>kk :lcd%:p:h<CR>
+" }}}

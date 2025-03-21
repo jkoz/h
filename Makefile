@@ -3,6 +3,7 @@ install:
 	install -Dm644 bash_profile ~/.bash_profile
 	install -Dm644 tmux.conf ~/.tmux.conf
 	install -Dm644 vimrc ~/.vimrc
+	install -Dm644 ctags ~/.ctags
 
 clean:
 	rm -f ~/.bashrc ~/.bash_profile ~/.tmux.conf ~/.vimrc
