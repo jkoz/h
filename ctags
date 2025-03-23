@@ -1,4 +1,5 @@
 --recurse=yes
+--sort=yes
 --exclude=.git
 --exclude=BUILD
 --exclude=.svn

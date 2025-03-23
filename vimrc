@@ -80,8 +80,8 @@ ino <leader><leader> <esc>
 vn <leader><leader> <esc>
 
 " change : to ;
-nn ; :
-nn : ;
+" nn ; :
+" nn : ;
 
 " Toggle wrap
 nn <Leader>W :setl nowrap! <CR>
@@ -98,7 +98,7 @@ nn <silent> <leader>v :nohl<cr>
 
 " Quick quit
 nn <silent> q :q<cr>
-nn <silent> - :bp\|bd #<cr>
+nn <silent> -- :bp\|bd #<cr>
 
 "com! BW :bp|:bd#
 "nn <silent> - :BW<cr>
@@ -416,6 +416,7 @@ let g:markdown_enable_folding = 1
 " }}}
 
 " Jump to git root or current file dir {{{ 
-nn <silent> <space>kj :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') .. ' rev-parse  --show-toplevel')}")<CR>
-nn <silent> <space>kk :lcd%:p:h<CR>
+nn oo o
+nn <silent> <space>kk :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') .. ' rev-parse  --show-toplevel')}") \| echo getcwd()<CR>
+nn <silent> <space>kj :lcd%:p:h \| echo getcwd()<CR>
 " }}}
