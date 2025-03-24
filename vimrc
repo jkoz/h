@@ -235,7 +235,7 @@ se makeprg=make
 " fold
 se foldenable
 se foldmethod=manual
-se foldlevelstart=0   " close all fold by default
+" se foldlevelstart=0   " close all fold by default
 " nnoremap <space> za  " space open/closes folds
 
 se sidescroll=1
@@ -408,15 +408,10 @@ hi PmenuSel term=reverse cterm=reverse ctermfg=64 ctermbg=0
 hi PmenuSbar ctermfg=12 term=bold cterm=bold ctermbg=0
 " }}}
 
-" vim-markdown {{{
-" disable of conceal regardless of conceallevel
-"let g:vim_markdown_conceal = 0
-let g:markdown_folding = 1
-let g:markdown_enable_folding = 1
-" }}}
-
 " Jump to git root or current file dir {{{ 
 nn oo o
 nn <silent> <space>kk :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') .. ' rev-parse  --show-toplevel')}") \| echo getcwd()<CR>
 nn <silent> <space>kj :lcd%:p:h \| echo getcwd()<CR>
+" hacky toc for markdown & vim9 script 
+nn op :FuzzyLine ^export.*\|^abstract.*\|^class.*\|^#[^#].*\|^##[^#].*<cr>
 " }}}
