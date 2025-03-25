@@ -413,5 +413,5 @@ nn oo o
 nn <silent> <space>kk :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') .. ' rev-parse  --show-toplevel')}") \| echo getcwd()<CR>
 nn <silent> <space>kj :lcd%:p:h \| echo getcwd()<CR>
 " hacky toc for markdown & vim9 script 
-nn op :FuzzyLine ^export.*\|^abstract.*\|^class.*\|^#[^#].*\|^##[^#].*<cr>
+nn <silent> op :FuzzyLine ^[[:space:]]*def.*\|^export.*\|^abstract.*\|^class.*\|^#[^#].*\|^##[^#].*<cr>
 " }}}
