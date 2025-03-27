@@ -21,6 +21,7 @@ Plug 'tpope/vim-speeddating'
 Plug 'mattn/emmet-vim'
 Plug 'jkoz/vim-fuzzy'
 Plug 'natebosch/vim-lsc'
+Plug 'habamax/vim-dir'
 
 
 call plug#end()
@@ -413,5 +414,6 @@ nn oo o
 nn <silent> <space>kk :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') .. ' rev-parse  --show-toplevel')}") \| echo getcwd()<CR>
 nn <silent> <space>kj :lcd%:p:h \| echo getcwd()<CR>
 " hacky toc for markdown & vim9 script 
-nn <silent> op :FuzzyLine ^[[:space:]]*def.*\|^export.*\|^abstract.*\|^class.*\|^#[^#].*\|^##[^#].*<cr>
+nn <silent> op :FuzzyLine ^[[:space:]]*def.*\|^export.*\|^abstract.*\|^class.*\|^funct.*\|^#[^#].*\|^##[^#].*<cr>
+nn <silent> oi :FuzzyShell grep -nr <cword> .<CR>
 " }}}
