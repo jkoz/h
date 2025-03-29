@@ -21,7 +21,6 @@ Plug 'tpope/vim-speeddating'
 Plug 'mattn/emmet-vim'
 Plug 'jkoz/vim-fuzzy'
 Plug 'natebosch/vim-lsc'
-Plug 'habamax/vim-dir'
 
 
 call plug#end()
