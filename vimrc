@@ -414,5 +414,4 @@ nn <silent> <space>kk :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') 
 nn <silent> <space>kj :lcd%:p:h \| echo getcwd()<CR>
 " hacky toc for markdown & vim9 script 
 nn <silent> op :FuzzyLine ^[[:space:]]*def.*\|^export.*\|^abstract.*\|^class.*\|^funct.*\|^#[^#].*\|^##[^#].*<cr>
-nn <silent> oi :FuzzyShell grep -nr <cword> .<CR>
 " }}}
