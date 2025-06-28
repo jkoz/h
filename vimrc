@@ -64,6 +64,13 @@ nn <silent> [g :tabprevious<CR>
 nn <silent> ]g :tabnext<CR>
 nn <silent> [G :tabrewind<CR>
 nn <silent> ]G :tablast<CR>
+nn <C-w>\| <C-w>v
+nn <C-w>" <C-w>s
+" }}}
+
+" Terminal {{{
+" C-w N : get to Normal Terminal Mode
+" i : get back to insert mode
 " }}}
 
 " rsi {{{
@@ -125,14 +132,12 @@ nn <leader>y :%s/\s\+$//<cr>
 " insert date, press dd<tab> insert mode to generate current date
 iab <expr> dd strftime("%c")
 
-" windows
-nn <C-w>\| <C-w>v
-nn <C-w>" <C-w>s
-
 " windows stuffs
 se equalalways
 "se eadirection
 
+nn <silent> <leader>i :exe "resize" . (winheight(0) + 2)<cr>
+nn <silent> <leader>o :exe "resize" . (winheight(0) - 2)<cr>
 nn <C-h> 2zh
 nn <C-l> 2zl
 nn <C-j> <C-E>
@@ -408,10 +413,25 @@ hi PmenuSel term=reverse cterm=reverse ctermfg=64 ctermbg=0
 hi PmenuSbar ctermfg=12 term=bold cterm=bold ctermbg=0
 " }}}
 
+" vim-lsc {{{
+let g:lsc_server_commands = {
+    \ 'c': {
+    \    'command': 'clangd15',
+    \    'suppress_stderr': v:true  
+    \  }
+    \}
+" }}}
+
+" vim-fuzzy {{{
+" let g:fuzzy_glyph_func = 'nerdfont#find'
+" let g:nerdfont#autofix_cellwidths = 2
+" }}}
+
 " Jump to git root or current file dir {{{ 
 nn oo o
 nn <silent> <space>kk :execute($"{'cd' .. system('git  -C  ' .. expand('%:p:h') .. ' rev-parse  --show-toplevel')}") \| echo getcwd()<CR>
 nn <silent> <space>kj :lcd%:p:h \| echo getcwd()<CR>
 " hacky toc for markdown & vim9 script 
-nn <silent> op :FuzzyLine ^[[:space:]]*def.*\|^export.*\|^abstract.*\|^class.*\|^funct.*\|^#[^#].*\|^##[^#].*<cr>
+nn <silent> op :FuzzyLine ^\s*\<def\>.*\|^export.*\|^abstract.*\|^class.*\|^funct.*\|^#[^#].*\|^##[^#].*<cr>
+nn oi :b#<cr>
 " }}}
