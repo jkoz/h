@@ -225,14 +225,6 @@ char* oauth2_create_access_token_uri(oauth2_context* ctx) {
     return uri;
 }
 
-/* char* oauth2_create_access_token_uri(oauth2_context* ctx) { */
-/*     char* query_fmt = "grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s"; */
-/*     int query_len = snprintf(NULL, 0, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->code, ctx->conf->redirect_uri); */
-/*     char* uri = malloc(sizeof(char)*query_len); */
-/*     sprintf(uri, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->code, ctx->conf->redirect_uri); */
-/*     return uri; */
-/* } */
-
 void oauth2_request_access_token(oauth2_context* ctx)
 {
     assert(ctx->conf != NULL);
@@ -246,10 +238,20 @@ void oauth2_request_access_token(oauth2_context* ctx)
 }
 
 char* oauth2_create_refresh_token_uri(oauth2_context* ctx) {
-    char* query_fmt = "grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s";
-    int query_len = snprintf(NULL, 0, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->refresh_token);
-    char* uri = malloc(sizeof(char)*query_len);
-    sprintf(uri, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->refresh_token);
+    int client_secret_len = 1;
+    char* core_fmt = "grant_type=refresh_token&client_id=%s&refresh_token=%s";
+    int core_len = snprintf(NULL, 0, core_fmt, ctx->conf->client_id, ctx->refresh_token) + 1;
+
+    char* client_secret_fmt = "&client_secret=%s";
+    if(ctx->conf->client_secret != NULL)
+        client_secret_len = snprintf(NULL, 0, (const char*)client_secret_fmt, ctx->conf->client_secret) + 1;
+
+    char* uri = calloc(((core_len - 1) + (client_secret_len - 1) + 1) * sizeof(char), sizeof(char));
+    sprintf(uri, core_fmt, ctx->conf->client_id, ctx->refresh_token);
+
+    if(ctx->conf->client_secret != NULL) // append client secret
+        sprintf(uri + core_len - 1, client_secret_fmt, ctx->conf->client_secret);
+
     return uri;
 }
 
@@ -264,15 +266,10 @@ void oauth2_access_refresh_token(oauth2_context* ctx)
     oauth2_set_inf(ctx, out);
     free(uri);
 
-    /*printf("Response from server: %s\n", out);*/
 }
 
 char* oauth2_request(oauth2_context* ctx, char* uri, char* params)
 {
-    //For now, we'll just include the access code with the request vars
-    //This is discouraged, but I don't know if most providers actually
-    //support the header-field method (Facebook is still at draft 0...)
-
     char* retVal;
     char* uri2;
     int uri_len;
@@ -564,8 +561,7 @@ char* curl_make_request(char* url, char* params)
     //Do we need to add the POST parameters?
     if(params != NULL) {
         curl_easy_setopt(handle, CURLOPT_POST, 1);
-        curl_easy_setopt(handle, CURLOPT_COPYPOSTFIELDS, params); //Copy them just incase
-                                                                  //the user does something stupid
+        curl_easy_setopt(handle, CURLOPT_COPYPOSTFIELDS, params);
     }
 
     if(curl_easy_perform(handle) != 0) {
