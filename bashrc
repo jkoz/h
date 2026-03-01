@@ -12,7 +12,7 @@ export LC_CTYPE=en_US.UTF-8
 export PS1=". "
 
 # PATH
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH=$HOME/bin:/usr/local/bin:$PATH:$HOME/.local/bin
 
 # use vi editing mode in shell
 set -o vi
@@ -48,3 +48,4 @@ alias l='ls -1pG'
 alias ls='ls -1pG'
 alias e='vim'
 alias t='tmux a'
+alias m='mutt'
