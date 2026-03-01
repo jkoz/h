@@ -10,10 +10,11 @@
 
 // build: gcc -lcurl -lyajl o2.c -o o2
 
-#define MAX_BUFFER 2048
+#define BUFFER 1048576 
+#define CURL_BUFFER 1024
 
 typedef struct _data {
-    char d[MAX_BUFFER];
+    char d[CURL_BUFFER];
     struct _data* next;
     int idx;
 } data;
@@ -175,6 +176,8 @@ static void oauth2_parse_conf(oauth2_context* ctx) {
     /* we have the whole config file in memory.  let's parse it ... */
     yajl_val node = yajl_tree_parse((const char *) ctx->inf, errbuf, sizeof(errbuf));
 
+    /* printf("\n\n%s\n", ctx->inf); */
+
     if (node == NULL) {
         fprintf(stderr, "parse_error: ");
         if (strlen(errbuf))
@@ -203,12 +206,32 @@ static void oauth2_parse_conf(oauth2_context* ctx) {
 }
 
 char* oauth2_create_access_token_uri(oauth2_context* ctx) {
-    char* query_fmt = "grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s";
-    int query_len = snprintf(NULL, 0, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->code, ctx->conf->redirect_uri);
-    char* uri = malloc(sizeof(char)*query_len);
-    sprintf(uri, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->code, ctx->conf->redirect_uri);
+    int client_secret_len = 1;
+
+    char* core_fmt = "grant_type=authorization_code&client_id=%s&code=%s&redirect_uri=%s";
+    int core_len = snprintf(NULL, 0, core_fmt, ctx->conf->client_id, ctx->code, ctx->conf->redirect_uri) + 1;
+
+    char* client_secret_fmt = "&client_secret=%s";
+    if(ctx->conf->client_secret != NULL)
+        client_secret_len = snprintf(NULL, 0, (const char*)client_secret_fmt, ctx->conf->client_secret) + 1;
+
+
+    char* uri = malloc(((core_len - 1) + (client_secret_len - 1) + 1) * sizeof(char));
+    sprintf(uri, core_fmt, ctx->conf->client_id, ctx->code, ctx->conf->redirect_uri);
+
+    if(ctx->conf->client_secret != NULL) // append client secret
+        sprintf(uri + core_len - 1, client_secret_fmt, ctx->conf->client_secret);
+
     return uri;
 }
+
+/* char* oauth2_create_access_token_uri(oauth2_context* ctx) { */
+/*     char* query_fmt = "grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s"; */
+/*     int query_len = snprintf(NULL, 0, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->code, ctx->conf->redirect_uri); */
+/*     char* uri = malloc(sizeof(char)*query_len); */
+/*     sprintf(uri, query_fmt, ctx->conf->client_id, ctx->conf->client_secret, ctx->code, ctx->conf->redirect_uri); */
+/*     return uri; */
+/* } */
 
 void oauth2_request_access_token(oauth2_context* ctx)
 {
@@ -304,8 +327,8 @@ void run(oauth2_config *conf) {
     f = fopen(pat, "r+");
 
     if (f != NULL) { /* there is cache*/
-        char buffer[100000];
-        fread(buffer, 100000, 1, f);
+        char buffer[BUFFER];
+        fread(buffer, BUFFER, 1, f);
 
         ctx->inf = malloc(sizeof(char) * (strlen(buffer) + 1));
         sprintf(ctx->inf, buffer);
@@ -366,6 +389,51 @@ static void usage(const char * progname)
     exit(1);
 }
 
+static oauth2_config* create_config(yajl_val node) {
+    oauth2_config* lconf = malloc(sizeof(oauth2_config));
+
+    const char * path[] = { "email", (const char *) 0 };
+    yajl_val v = yajl_tree_get(node, path, yajl_t_string);
+    assert(v != NULL);
+    lconf->email = strdup(YAJL_GET_STRING(v));
+
+    const char * path_as[] = { "auth_server", (const char *) 0 };
+    v = yajl_tree_get(node, path_as, yajl_t_string);
+    assert(v != NULL);
+    lconf->auth_server = strdup(YAJL_GET_STRING(v));
+
+    const char * path_at[] = { "token_server", (const char *) 0 };
+    v = yajl_tree_get(node, path_at, yajl_t_string);
+    assert(v != NULL);
+    lconf->token_server = strdup(YAJL_GET_STRING(v));
+
+    const char * path_ci[] = { "client_id", (const char *) 0 };
+    v = yajl_tree_get(node, path_ci, yajl_t_string);
+    assert(v != NULL);
+    lconf->client_id = strdup(YAJL_GET_STRING(v));
+
+    const char * path_cs[] = { "client_secret", (const char *) 0 };
+    v = yajl_tree_get(node, path_cs, yajl_t_string);
+    if (v != NULL) {
+        lconf->client_secret = strdup(YAJL_GET_STRING(v));
+    } else {
+        lconf->client_secret = NULL;
+    }
+
+    const char * path_ru[] = { "redirect_uri", (const char *) 0 };
+    v = yajl_tree_get(node, path_ru, yajl_t_string);
+    assert(v != NULL);
+    lconf->redirect_uri = strdup(YAJL_GET_STRING(v));
+
+    const char * path_s[] = { "scope", (const char *) 0 };
+    v = yajl_tree_get(node, path_s, yajl_t_string);
+    assert(v != NULL);
+    lconf->scope = strdup(YAJL_GET_STRING(v));
+
+    lconf->state = NULL;
+    return lconf;
+}
+
 int main(int argc, char** argv)
 {
     if (argc < 2) {
@@ -374,7 +442,7 @@ int main(int argc, char** argv)
     }
 
     FILE *f;
-    char buffer[1024];
+    char buffer[BUFFER];
     char *h = getenv("HOME");
     int len;
     len = snprintf(NULL, 0, "%s/.cache/.o2", h);
@@ -382,7 +450,7 @@ int main(int argc, char** argv)
     sprintf(pat, "%s/.cache/.o2", h);
     f = fopen(pat, "r+");
     if (f != NULL) { /* there is cache*/
-        fread(buffer, 1024, 1, f);
+        fread(buffer, BUFFER, 1, f);
     } else {
         printf("No config file ~/.cache/.o2");
         exit(1);
@@ -390,54 +458,37 @@ int main(int argc, char** argv)
 
 
     // load conf
-    oauth2_config lconf;
+    oauth2_config *lconf;
     char errbuf[1024];
     errbuf[0] = 0;
     yajl_val node = yajl_tree_parse((const char *) buffer, errbuf, sizeof(errbuf));
     assert(node != NULL);
 
-    const char * path[] = { "email", (const char *) 0 };
-    yajl_val v = yajl_tree_get(node, path, yajl_t_string);
-    assert(v != NULL);
-    lconf.email = strdup(YAJL_GET_STRING(v));
+    if (YAJL_IS_ARRAY(node)) {
+        size_t s = node->u.array.len;
+        for (size_t i = 0; i < s; i++) {
+            yajl_val obj = node->u.array.values[i];
+            assert(obj != NULL);
 
-    const char * path_as[] = { "auth_server", (const char *) 0 };
-    v = yajl_tree_get(node, path_as, yajl_t_string);
-    assert(v != NULL);
-    lconf.auth_server = strdup(YAJL_GET_STRING(v));
-
-    const char * path_at[] = { "token_server", (const char *) 0 };
-    v = yajl_tree_get(node, path_at, yajl_t_string);
-    assert(v != NULL);
-    lconf.token_server = strdup(YAJL_GET_STRING(v));
-
-    const char * path_ci[] = { "client_id", (const char *) 0 };
-    v = yajl_tree_get(node, path_ci, yajl_t_string);
-    assert(v != NULL);
-    lconf.client_id = strdup(YAJL_GET_STRING(v));
-
-    const char * path_cs[] = { "client_secret", (const char *) 0 };
-    v = yajl_tree_get(node, path_cs, yajl_t_string);
-    assert(v != NULL);
-    lconf.client_secret = strdup(YAJL_GET_STRING(v));
-
-    const char * path_ru[] = { "redirect_uri", (const char *) 0 };
-    v = yajl_tree_get(node, path_ru, yajl_t_string);
-    assert(v != NULL);
-    lconf.redirect_uri = strdup(YAJL_GET_STRING(v));
-
-    const char * path_s[] = { "scope", (const char *) 0 };
-    v = yajl_tree_get(node, path_s, yajl_t_string);
-    assert(v != NULL);
-    lconf.scope = strdup(YAJL_GET_STRING(v));
-
-    lconf.state = NULL;
-
-    if (strcmp(argv[1], lconf.email) == 0) {
-        run(&lconf);
-        return 0;
+            const char * path[] = { "email", (const char *) 0 };
+            yajl_val v = yajl_tree_get(obj, path, yajl_t_string);
+            assert(v != NULL);
+            char* email = strdup(YAJL_GET_STRING(v));
+            if (strcmp(argv[1], email) == 0) {
+                lconf = create_config(obj);
+                run(lconf);
+                free(lconf);
+                return 0;
+            }
+        }
+        printf("No config for %s\n", argv[1]);
     } else {
-        printf("Could not find %s in ~/.cache/o2\n", lconf.email);
+        lconf = create_config(node);
+        if (strcmp(argv[1], lconf->email) == 0) {
+            run(lconf);
+            free(lconf);
+            return 0;
+        }
     }
 
     return 1;
@@ -464,7 +515,7 @@ size_t curl_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
     {
         d->d[d->idx++] = ((char*)ptr)[idx++];
 
-        if(d->idx == MAX_BUFFER)
+        if(d->idx == CURL_BUFFER)
         {
             nd = malloc(sizeof(data));
             nd->next = NULL;
@@ -490,6 +541,8 @@ void data_clean(data* d)
 
 char* curl_make_request(char* url, char* params)
 {
+    /* printf("%s - %s\n", url, params); */
+
     data* storage;
     data* curr_storage;
     CURL* handle;
@@ -509,22 +562,18 @@ char* curl_make_request(char* url, char* params)
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, storage);
 
     //Do we need to add the POST parameters?
-    if(params != NULL)
-    {
+    if(params != NULL) {
         curl_easy_setopt(handle, CURLOPT_POST, 1);
         curl_easy_setopt(handle, CURLOPT_COPYPOSTFIELDS, params); //Copy them just incase
                                                                   //the user does something stupid
     }
 
-    if(curl_easy_perform(handle) != 0)
-    {
-        //Error!
+    if(curl_easy_perform(handle) != 0) {
         curl_easy_cleanup(handle);
         data_clean(storage);
         return NULL;
     }
 
-    //Everything went OK.
     //How long is the data?
     data_len = 0;
     curr_storage = storage;
@@ -535,18 +584,17 @@ char* curl_make_request(char* url, char* params)
     }
 
     //Allocate storage
-    retVal = malloc(sizeof(char)*data_len);
+    retVal = calloc(sizeof(char)*data_len, sizeof(char));
 
     //Now copy in the data
     curr_storage = storage;
     data_len = 0;
     while(curr_storage)
     {
-        memcpy(retVal+data_len, curr_storage->d, curr_storage->idx);
+        memcpy(retVal + data_len, curr_storage->d, curr_storage->idx);
+        data_len += curr_storage->idx;
         curr_storage = curr_storage->next;
     }
-
-    /* printf("%s", retVal); */
 
     //Cleanup
     curl_easy_cleanup(handle);
