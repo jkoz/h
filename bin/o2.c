@@ -4,11 +4,11 @@
 #include <assert.h>
 #include <time.h>
 #include <curl/curl.h>
-#include <yajl/yajl_tree.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <cjson/cJSON.h>
 
-// build: gcc -lcurl -lyajl o2.c -o o2
+// build: gcc -g -lcurl -lcjson o2.c -o o2
 
 #define BUFFER 1048576 
 #define CURL_BUFFER 1024
@@ -68,6 +68,8 @@ typedef struct _oauth2_context
     char* refresh_token; /* refresh_token if any */
     int expires_in;
     char* inf;
+    char* ir; // initial response
+    cJSON *ir_json;              
     oauth2_error last_error;
 } oauth2_context;
 
@@ -75,6 +77,7 @@ char* curl_make_request(char* url, char* params);
 oauth2_context* create_context(oauth2_config* conf);
 void oauth2_set_code(oauth2_context* contex, char* code);
 void oauth2_set_inf(oauth2_context* contex, char* inf);
+void oauth2_set_initial_response(oauth2_context *context, char* ir);
 void oauth2_set_auth_code(oauth2_context* contex, char* auth_code);
 
 //Returns URL to redirect user to.
@@ -88,7 +91,7 @@ char* oauth2_create_refresh_token_uri(oauth2_context* conf);
 void oauth2_access_refresh_token(oauth2_context* conf);
 char* oauth2_request(oauth2_context* conf, char* uri, char* params);
 void oauth2_cleanup(oauth2_context* conf);
-static void oauth2_parse_conf(oauth2_context*);
+static void oauth2_parse_inital_response(oauth2_context*);
 
 oauth2_context* create_context(oauth2_config* conf) {
      oauth2_context* contex = malloc(sizeof(oauth2_context));
@@ -116,6 +119,12 @@ void oauth2_set_inf(oauth2_context* ctx, char* inf) {
     assert(ctx != NULL);
     ctx->inf = malloc(sizeof(char) * (strlen(inf)+1));
     strcpy(ctx->inf, inf);
+}
+
+void oauth2_set_initial_response(oauth2_context *ctx, char* ir) {
+    assert(ctx != NULL);
+    ctx->ir = malloc(sizeof(char) * (strlen(ir)+1));
+    strcpy(ctx->ir, ir);
 }
 
 void oauth2_set_auth_code(oauth2_context* ctx, char* auth_code)
@@ -169,40 +178,32 @@ void oauth2_request_auth_code(oauth2_context* ctx)
     oauth2_set_code(ctx, code);
 }
 
-static void oauth2_parse_conf(oauth2_context* ctx) {
+static void oauth2_parse_inital_response(oauth2_context* ctx) {
     char errbuf[1024];
     errbuf[0] = 0;
 
-    /* we have the whole config file in memory.  let's parse it ... */
-    yajl_val node = yajl_tree_parse((const char *) ctx->inf, errbuf, sizeof(errbuf));
+	cJSON *root = cJSON_Parse(ctx->ir);
+	if (root == NULL) {
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL) {
+			fprintf(stderr, "Error before: %s\n", error_ptr);
+		}
+	}
+	assert(root != NULL);
+    ctx->ir_json = root;
 
-    /* printf("\n\n%s\n", ctx->inf); */
+	cJSON* at = cJSON_GetObjectItemCaseSensitive(root, "access_token");
+	assert(at != NULL);
 
-    if (node == NULL) {
-        fprintf(stderr, "parse_error: ");
-        if (strlen(errbuf))
-            fprintf(stderr, " %s", errbuf);
-        else
-            fprintf(stderr, "unknown error");
-        fprintf(stderr, "\n");
-    }
+	ctx->auth_code = strdup(at->valuestring);
+	cJSON* rt = cJSON_GetObjectItemCaseSensitive(root, "refresh_token");
+	assert(rt != NULL);
 
-    const char * path[] = { "access_token", (const char *) 0 };
-    yajl_val v = yajl_tree_get(node, path, yajl_t_string);
-    assert(v != NULL);
-    ctx->auth_code = strdup(YAJL_GET_STRING(v));
+	ctx->refresh_token = strdup(rt->valuestring);
+	cJSON* ei = cJSON_GetObjectItemCaseSensitive(root, "expires_in");
+	assert(ei != NULL);
 
-    const char * path_rt[] = { "refresh_token", (const char *) 0 };
-    yajl_val v_rt = yajl_tree_get(node, path_rt, yajl_t_string);
-    assert(v_rt != NULL);
-    ctx->refresh_token = strdup(YAJL_GET_STRING(v_rt));
-
-    const char * path_ei[] = { "expires_in", (const char *) 0 };
-    yajl_val v_ei = yajl_tree_get(node, path_ei, yajl_t_number);
-    assert(v_ei != NULL);
-    ctx->expires_in = YAJL_GET_INTEGER(v_ei);
-
-    yajl_tree_free(node);
+	ctx->expires_in = ei->valueint;
 }
 
 char* oauth2_create_access_token_uri(oauth2_context* ctx) {
@@ -233,7 +234,8 @@ void oauth2_request_access_token(oauth2_context* ctx)
 
     char* uri = oauth2_create_access_token_uri(ctx);
     /* printf("\n\nUsing: %s/%s\n\n", ctx->conf->token_server, uri ); */
-    oauth2_set_inf(ctx, curl_make_request(ctx->conf->token_server, uri));
+    /* oauth2_set_inf(ctx, curl_make_request(ctx->conf->token_server, uri)); */
+    oauth2_set_initial_response(ctx, curl_make_request(ctx->conf->token_server, uri));
     free(uri);
 }
 
@@ -308,6 +310,10 @@ void oauth2_cleanup(oauth2_context* ctx)
         free(ctx->code);
     if (ctx->inf != NULL)
         free(ctx->inf);
+    if (ctx->ir != NULL)
+        free(ctx->ir);
+    if (ctx->ir_json != NULL)
+        cJSON_Delete(ctx->ir_json);
     free(ctx);
 }
 
@@ -315,7 +321,6 @@ void run(oauth2_config *conf) {
     oauth2_context* ctx = create_context(conf);
 
     FILE *f;
-
     char *h = getenv("HOME");
     int uri_len;
     uri_len = snprintf(NULL, 0, "%s/.cache/.%s", h, ctx->conf->email);
@@ -323,19 +328,20 @@ void run(oauth2_config *conf) {
     sprintf(pat, "%s/.cache/.%s", h, ctx->conf->email);
     f = fopen(pat, "r+");
 
-    if (f != NULL) { /* there is cache*/
+    if (f != NULL) {
         char buffer[BUFFER];
         fread(buffer, BUFFER, 1, f);
 
-        ctx->inf = malloc(sizeof(char) * (strlen(buffer) + 1));
-        sprintf(ctx->inf, buffer);
+        ctx->ir = calloc(sizeof(char) * (strlen(buffer) + 1), sizeof(char));
+        sprintf(ctx->ir, buffer); // load from initial response
 
-        oauth2_parse_conf(ctx);
+        oauth2_parse_inital_response(ctx);
+        fclose(f);
+
         struct stat attr;
         stat(pat, &attr);
 
         int s = time(0) - attr.st_mtime;
-        /* int s = 9000; */
 
         /* printf("expire-in: %i, current:%i \n", ctx->expires_in, s); */
 
@@ -346,25 +352,33 @@ void run(oauth2_config *conf) {
             char errbuf[1024];
             errbuf[0] = 0;
 
-            /* we have the whole config file in memory.  let's parse it ... */
-            yajl_val node = yajl_tree_parse((const char *) ctx->inf, errbuf, sizeof(errbuf));
-            assert(node != NULL);
+			cJSON *root = cJSON_Parse(ctx->inf);
+            assert(root != NULL);
 
-            const char * path[] = { "access_token", (const char *) 0 };
-            yajl_val v = yajl_tree_get(node, path, yajl_t_string);
-            assert(v != NULL);
-            ctx->auth_code = strdup(YAJL_GET_STRING(v));
+			cJSON* at = cJSON_GetObjectItemCaseSensitive(root, "access_token");
+			ctx->auth_code = strdup(at->valuestring);
+            
+			cJSON* oat = cJSON_GetObjectItemCaseSensitive(ctx->ir_json, "access_token");
+            cJSON_SetValuestring(oat, ctx->auth_code);
+
+            f = fopen(pat, "w"); // TODO: should not open same file twice for read/write
+
+            char *js = cJSON_Print(ctx->ir_json);
+            fprintf(f, "%s", js); // write initial response
+            free(js);
+
+			cJSON_Delete(root);
         }
     } else {
         oauth2_request_auth_code(ctx); /* prompt for URI to get code */
         oauth2_request_access_token(ctx); /* get the code to request access_token*/
-        oauth2_parse_conf(ctx);
+        oauth2_parse_inital_response(ctx);
 
         f = fopen(pat, "w");
         if (f == NULL)
             printf("not able to open file to write conf");
         else
-            fprintf(f, ctx->inf);
+            fprintf(f, ctx->ir); // write initial response
     }
 
     printf("%s", ctx->auth_code);
@@ -386,48 +400,20 @@ static void usage(const char * progname)
     exit(1);
 }
 
-static oauth2_config* create_config(yajl_val node) {
+static oauth2_config* create_config(const char* email, cJSON *node) {
     oauth2_config* lconf = malloc(sizeof(oauth2_config));
+    lconf->email = strdup(email);
 
-    const char * path[] = { "email", (const char *) 0 };
-    yajl_val v = yajl_tree_get(node, path, yajl_t_string);
-    assert(v != NULL);
-    lconf->email = strdup(YAJL_GET_STRING(v));
+    lconf->auth_server = strdup(cJSON_GetObjectItemCaseSensitive(node, "auth_server")->valuestring);
+    lconf->token_server = strdup(cJSON_GetObjectItemCaseSensitive(node, "token_server")->valuestring);
+    lconf->client_id = strdup(cJSON_GetObjectItemCaseSensitive(node, "client_id")->valuestring);
+    lconf->redirect_uri = strdup(cJSON_GetObjectItemCaseSensitive(node, "redirect_uri")->valuestring);
+    lconf->scope = strdup(cJSON_GetObjectItemCaseSensitive(node, "scope")->valuestring);
 
-    const char * path_as[] = { "auth_server", (const char *) 0 };
-    v = yajl_tree_get(node, path_as, yajl_t_string);
-    assert(v != NULL);
-    lconf->auth_server = strdup(YAJL_GET_STRING(v));
-
-    const char * path_at[] = { "token_server", (const char *) 0 };
-    v = yajl_tree_get(node, path_at, yajl_t_string);
-    assert(v != NULL);
-    lconf->token_server = strdup(YAJL_GET_STRING(v));
-
-    const char * path_ci[] = { "client_id", (const char *) 0 };
-    v = yajl_tree_get(node, path_ci, yajl_t_string);
-    assert(v != NULL);
-    lconf->client_id = strdup(YAJL_GET_STRING(v));
-
-    const char * path_cs[] = { "client_secret", (const char *) 0 };
-    v = yajl_tree_get(node, path_cs, yajl_t_string);
-    if (v != NULL) {
-        lconf->client_secret = strdup(YAJL_GET_STRING(v));
-    } else {
-        lconf->client_secret = NULL;
-    }
-
-    const char * path_ru[] = { "redirect_uri", (const char *) 0 };
-    v = yajl_tree_get(node, path_ru, yajl_t_string);
-    assert(v != NULL);
-    lconf->redirect_uri = strdup(YAJL_GET_STRING(v));
-
-    const char * path_s[] = { "scope", (const char *) 0 };
-    v = yajl_tree_get(node, path_s, yajl_t_string);
-    assert(v != NULL);
-    lconf->scope = strdup(YAJL_GET_STRING(v));
-
+    cJSON *cs = cJSON_GetObjectItemCaseSensitive(node, "client_secret");
+    lconf->client_secret = cs != NULL ? strdup(cs->valuestring) : NULL;
     lconf->state = NULL;
+
     return lconf;
 }
 
@@ -458,35 +444,27 @@ int main(int argc, char** argv)
     oauth2_config *lconf;
     char errbuf[1024];
     errbuf[0] = 0;
-    yajl_val node = yajl_tree_parse((const char *) buffer, errbuf, sizeof(errbuf));
-    assert(node != NULL);
-
-    if (YAJL_IS_ARRAY(node)) {
-        size_t s = node->u.array.len;
-        for (size_t i = 0; i < s; i++) {
-            yajl_val obj = node->u.array.values[i];
+    cJSON *root = cJSON_Parse(buffer);
+    assert(root!= NULL);
+    if (cJSON_IsArray(root)) {
+        int s = cJSON_GetArraySize(root);
+        for (int i = 0; i < s; i++) {
+            cJSON *obj = cJSON_GetArrayItem(root, i);
             assert(obj != NULL);
 
-            const char * path[] = { "email", (const char *) 0 };
-            yajl_val v = yajl_tree_get(obj, path, yajl_t_string);
-            assert(v != NULL);
-            char* email = strdup(YAJL_GET_STRING(v));
+            cJSON* em = cJSON_GetObjectItemCaseSensitive(obj, "email");
+            assert(em != NULL);
+            char *email = strdup(em->valuestring);
             if (strcmp(argv[1], email) == 0) {
-                lconf = create_config(obj);
+                lconf = create_config(email, obj);
                 run(lconf);
                 free(lconf);
                 return 0;
             }
         }
         printf("No config for %s\n", argv[1]);
-    } else {
-        lconf = create_config(node);
-        if (strcmp(argv[1], lconf->email) == 0) {
-            run(lconf);
-            free(lconf);
-            return 0;
-        }
     }
+	cJSON_Delete(root);
 
     return 1;
 }
@@ -595,6 +573,8 @@ char* curl_make_request(char* url, char* params)
     //Cleanup
     curl_easy_cleanup(handle);
     data_clean(storage);
+
+    /* printf("\n>>>\n%s\n>>>\n", retVal); */
 
     return retVal;
 }
